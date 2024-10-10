@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const bg = "bg";
-const job = "job";
-const id = "id";
-const params = "params";
-const token = "token";
+const bg = "${bg}";
+const job = "${job}";
+const id = "${id}";
+const params = "${params}";
+const token = "${token}";
 // Directory structure
 const structure = {
   src: {
