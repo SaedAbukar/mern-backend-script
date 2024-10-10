@@ -1,10 +1,27 @@
 const fs = require("fs");
 const path = require("path");
-const bg = "${bg}";
-const job = "${job}";
-const id = "${id}";
-const params = "${params}";
-const token = "${token}";
+const baseName = process.argv[2];
+if (!baseName) {
+  console.error("Please provide a base name as an argument.");
+  process.exit(1);
+}
+
+// Convert the base name to camel case
+const toCamelCase = (str) => {
+  return str
+    .replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ""))
+    .replace(/^(.)/, (c) => c.toLowerCase());
+};
+
+// Convert the base name to Pascal case
+const toPascalCase = (str) => {
+  return str
+    .replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ""))
+    .replace(/^(.)/, (c) => c.toUpperCase());
+};
+
+const camelCaseBaseName = toCamelCase(baseName);
+const pascalCaseBaseName = toPascalCase(baseName);
 // Directory structure
 const structure = {
   src: {
@@ -13,12 +30,12 @@ const structure = {
       "CheckBox.jsx",
       "Hero.jsx",
       "HomeCards.jsx",
-      "JobListing.jsx",
-      "JobListings.jsx",
+      `${pascalCaseBaseName}Listing.jsx`,
+      `${pascalCaseBaseName}Listings.jsx`,
       "Navbar.jsx",
       "ProtectedRoute.jsx",
       "Spinner.jsx",
-      "ViewAllJobs.jsx",
+      `ViewAll${pascalCaseBaseName}s.jsx`,
     ],
     context: ["AuthContext.jsx"],
     hooks: [
@@ -29,11 +46,11 @@ const structure = {
     ],
     layouts: ["MainLayout.jsx"],
     pages: [
-      "AddJobPage.jsx",
-      "EditJobPage.jsx",
+      `Add${pascalCaseBaseName}Page.jsx`,
+      `${pascalCaseBaseName}Page.jsx`,
       "HomePage.jsx",
-      "JobPage.jsx",
-      "JobsPage.jsx",
+      `${pascalCaseBaseName}Page.jsx`,
+      `${pascalCaseBaseName}sPage.jsx`,
       "LoginPage.jsx",
       "NotFoundPage.jsx",
       "SignupComponent.jsx",
@@ -45,7 +62,7 @@ const structure = {
 // Content templates for various files
 const fileTemplates = {
   "Card.jsx": `const Card = ({ children, bg = 'bg-gray-100' }) => {
-  return <div className={${bg} p-6 rounded-lg shadow-md}>{children}</div>;
+  return <div className={\`\${bg}\ p-6 rounded-lg shadow-md}\`>{children}</div>;
 };
 export default Card;`,
 
@@ -79,7 +96,7 @@ export default function MembershipStatus({ status, onStatusChange }) {
 
   "Hero.jsx": `const Hero = ({
   title = 'Become a React Dev',
-  subtitle = 'Find the React job that fits your skill set',
+  subtitle = 'Find the React ${camelCaseBaseName} that fits your skill set',
 }) => {
   return (
     <section className='bg-indigo-700 py-20 mb-4'>
@@ -110,23 +127,23 @@ const HomeCards = () => {
           <Card>
             <h2 className='text-2xl font-bold'>For Developers</h2>
             <p className='mt-2 mb-4'>
-              Browse our React jobs and start your career today
+              Browse our React ${camelCaseBaseName}s and start your career today
             </p>
             <Link
-              to='/jobs'
+              to='/${camelCaseBaseName}s'
               className='inline-block bg-black text-white rounded-lg px-4 py-2 hover:bg-gray-700'
             >
-              Browse Jobs
+              Browse ${pascalCaseBaseName}s
             </Link>
           </Card>
           <Card bg='bg-indigo-100'>
             <h2 className='text-2xl font-bold'>For Employers</h2>
             <p className='mt-2 mb-4'>
-              List your job to find the perfect developer for the role
+              List your ${camelCaseBaseName} to find the perfect developer for the role
             </p>
             {isAuthenticated ? (
-              <Link to='/add-job' className='inline-block bg-indigo-500 text-white rounded-lg px-4 py-2 hover:bg-indigo-600'>
-                Add Job
+              <Link to='/add-${camelCaseBaseName}' className='inline-block bg-indigo-500 text-white rounded-lg px-4 py-2 hover:bg-indigo-600'>
+                Add ${pascalCaseBaseName}
               </Link>
             ) : (
               <Link to="/login" className='inline-block bg-indigo-500 text-white rounded-lg px-4 py-2 hover:bg-indigo-600'>
@@ -141,14 +158,14 @@ const HomeCards = () => {
 };
 export default HomeCards;`,
 
-  "JobListing.jsx": `import { useState } from 'react';
+  [`${pascalCaseBaseName}Listing.jsx`]: `import { useState } from 'react';
 import { FaMapMarker } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-const JobListing = ({ job }) => {
+const ${pascalCaseBaseName}Listing = ({ ${camelCaseBaseName} }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  let description = job.description;
+  let description = ${camelCaseBaseName}.description;
 
   if (!showFullDescription) {
     description = description.substring(0, 90) + '...';
@@ -158,8 +175,8 @@ const JobListing = ({ job }) => {
     <div className='bg-white rounded-xl shadow-md relative'>
       <div className='p-4'>
         <div className='mb-6'>
-          <div className='text-gray-600 my-2'>{job.type}</div>
-          <h3 className='text-xl font-bold'>{job.title}</h3>
+          <div className='text-gray-600 my-2'>{${camelCaseBaseName}.type}</div>
+          <h3 className='text-xl font-bold'>{${camelCaseBaseName}.title}</h3>
         </div>
 
         <div className='mb-5'>{description}</div>
@@ -171,17 +188,17 @@ const JobListing = ({ job }) => {
           {showFullDescription ? 'Less' : 'More'}
         </button>
 
-        <h3 className='text-indigo-500 mb-2'>{job.salary} / Year</h3>
+        <h3 className='text-indigo-500 mb-2'>{${camelCaseBaseName}.salary} / Year</h3>
 
         <div className='border border-gray-100 mb-5'></div>
 
         <div className='flex flex-col lg:flex-row justify-between mb-4'>
           <div className='text-orange-700 mb-3'>
             <FaMapMarker className='inline text-lg mb-1 mr-1' />
-            {job.location}
+            {${camelCaseBaseName}.location}
           </div>
           <Link
-            to={/jobs/${job.id}}
+            to={/\`\${camelCaseBaseName}s/$\{${camelCaseBaseName}.id}\`}
             className='h-[36px] bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-center text-sm'
           >
             Read More
@@ -191,23 +208,23 @@ const JobListing = ({ job }) => {
     </div>
   );
 };
-export default JobListing;`,
+export default ${pascalCaseBaseName}Listing;`,
 
-  "JobListings.jsx": `import { useState, useEffect } from "react";
-import JobListing from "./JobListing";
+  [`${pascalCaseBaseName}Listings.jsx`]: `import { useState, useEffect } from "react";
+import ${pascalCaseBaseName}Listing from "./${pascalCaseBaseName}Listing";
 import Spinner from "./Spinner";
 
-const JobListings = ({ isHome = false }) => {
-  const [jobs, setJobs] = useState([]);
+const ${pascalCaseBaseName}Listings = ({ isHome = false }) => {
+  const [${camelCaseBaseName}s, set${pascalCaseBaseName}s] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      const apiUrl = isHome ? "/api/jobs?_limit=3" : "/api/jobs";
+    const fetch${pascalCaseBaseName}s = async () => {
+      const apiUrl = isHome ? "/api/${camelCaseBaseName}s?_limit=3" : "/api/${camelCaseBaseName}s";
       try {
         const res = await fetch(apiUrl);
         const data = await res.json();
-        setJobs(data);
+        set${pascalCaseBaseName}s(data);
       } catch (error) {
         console.log("Error fetching data", error);
       } finally {
@@ -215,24 +232,24 @@ const JobListings = ({ isHome = false }) => {
       }
     };
 
-    fetchJobs();
+    fetch${pascalCaseBaseName}s();
   }, []);
 
   return (
     <section className="bg-blue-50 px-4 py-10">
       <div className="container-xl lg:container m-auto">
         <h2 className="text-3xl font-bold text-indigo-500 mb-6 text-center">
-          {isHome ? "Recent Jobs" : "Browse Jobs"}
+          {isHome ? "Recent ${pascalCaseBaseName}s" : "Browse ${pascalCaseBaseName}s"}
         </h2>
 
         {loading ? (
           <Spinner loading={loading} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {jobs.length === 0 ? (
-              <p>No jobs available at the moment.</p>
+            {${camelCaseBaseName}s.length === 0 ? (
+              <p>No ${camelCaseBaseName}s available at the moment.</p>
             ) : (
-              jobs.map((job) => <JobListing key={job.id} job={job} />)
+              ${camelCaseBaseName}s.map((${camelCaseBaseName}) => <${pascalCaseBaseName}Listing key={${camelCaseBaseName}.id} ${camelCaseBaseName}={${camelCaseBaseName}} />)
             )}
           </div>
         )}
@@ -240,7 +257,7 @@ const JobListings = ({ isHome = false }) => {
     </section>
   );
 };
-export default JobListings;`,
+export default ${pascalCaseBaseName}Listings;`,
 
   "Navbar.jsx": `import { NavLink } from "react-router-dom";
 import logo from "../assets/images/logo.png";
@@ -260,9 +277,9 @@ const Navbar = () => {
         <div className="flex h-20 items-center justify-between">
           <div className="flex flex-1 items-center justify-center md:items-stretch md:justify-start">
             <NavLink className="flex flex-shrink-0 items-center mr-4" to="/">
-              <img className="h-10 w-auto" src={logo} alt="React Jobs" />
+              <img className="h-10 w-auto" src={logo} alt="React ${pascalCaseBaseName}s" />
               <span className="hidden md:block text-white text-2xl font-bold ml-2">
-                React Jobs
+                React ${pascalCaseBaseName}s
               </span>
             </NavLink>
             <div className="md:ml-auto">
@@ -270,13 +287,13 @@ const Navbar = () => {
                 <NavLink to="/" className={linkClass}>
                   Home
                 </NavLink>
-                <NavLink to="/jobs" className={linkClass}>
-                  Jobs
+                <NavLink to="/${camelCaseBaseName}s" className={linkClass}>
+                  ${pascalCaseBaseName}s
                 </NavLink>
                 {isAuthenticated ? (
                   <>
-                    <NavLink to="/add-job" className={linkClass}>
-                      Add Job
+                    <NavLink to="/add-${camelCaseBaseName}" className={linkClass}>
+                      Add ${pascalCaseBaseName}
                     </NavLink>
                     <NavLink
                       className="text-white bg-indigo-800 hover:bg-red-800 rounded-md px-3 py-2"
@@ -340,21 +357,21 @@ const Spinner = ({ loading }) => {
 };
 export default Spinner;`,
 
-  "ViewAllJobs.jsx": `import { Link } from 'react-router-dom';
+  [`ViewAll${pascalCaseBaseName}s.jsx`]: `import { Link } from 'react-router-dom';
 
-const ViewAllJobs = () => {
+const ViewAll${pascalCaseBaseName}s = () => {
   return (
     <section className='m-auto max-w-lg my-10 px-6'>
       <Link
-        to='/jobs'
+        to='/${camelCaseBaseName}s'
         className='block bg-black text-white text-center py-4 px-6 rounded-xl hover:bg-gray-700'
       >
-        View All Jobs
+        View All ${pascalCaseBaseName}s
       </Link>
     </section>
   );
 };
-export default ViewAllJobs;`,
+export default ViewAll${pascalCaseBaseName}s;`,
 
   "AuthContext.jsx": `import React, { createContext, useState, useContext, useEffect } from 'react';
 // import { useNavigate, useLocation } from 'react-router-dom';
@@ -582,12 +599,12 @@ const MainLayout = () => {
 
 export default MainLayout;`,
 
-  "AddJobPage.jsx": `import { useState } from 'react';
+  [`Add${pascalCaseBaseName}Page.jsx`]: `import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useField from '../hooks/useField';
 
-const AddJobPage = ({ addJobSubmit }) => {
+const Add${pascalCaseBaseName}Page = ({ add${pascalCaseBaseName}Submit }) => {
   const title = useField('text', 'title');
   const description = useField('textarea', 'description');
   const salary = useField('select', 'salary');
@@ -604,7 +621,7 @@ const AddJobPage = ({ addJobSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newJob = {
+    const new${pascalCaseBaseName} = {
       title: title.value,
       type: type.value,
       description: description.value,
@@ -619,9 +636,9 @@ const AddJobPage = ({ addJobSubmit }) => {
       status: status.value,
     };
 
-    addJobSubmit(newJob);
+    add${pascalCaseBaseName}Submit(new${pascalCaseBaseName});
     
-    navigate('/jobs');
+    navigate('/${camelCaseBaseName}s');
   };
 
   return (
@@ -629,11 +646,11 @@ const AddJobPage = ({ addJobSubmit }) => {
       <div className="container m-auto max-w-2xl py-24">
         <div className="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
           <form onSubmit={handleSubmit}>
-            <h2 className="text-3xl text-center font-semibold mb-6">Add Job</h2>
+            <h2 className="text-3xl text-center font-semibold mb-6">Add ${pascalCaseBaseName}</h2>
 
             <div className="mb-4">
               <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
-                Job Type
+                ${pascalCaseBaseName} Type
               </label>
               <select
                 {...type}
@@ -653,7 +670,7 @@ const AddJobPage = ({ addJobSubmit }) => {
 
             <div className="mb-4">
               <label htmlFor={title.id} className="block text-gray-700 font-bold mb-2">
-                Job Listing Name
+                ${pascalCaseBaseName} Listing Name
               </label>
               <input
                 {...title}
@@ -757,7 +774,7 @@ const AddJobPage = ({ addJobSubmit }) => {
 
             <div className="mb-4">
               <label htmlFor="status" className="block text-gray-700 font-bold mb-2">
-                Job Status:
+                ${pascalCaseBaseName} Status:
               </label>
               <select
                 {...status}
@@ -778,7 +795,7 @@ const AddJobPage = ({ addJobSubmit }) => {
                 className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline"
                 type="submit"
               >
-                Add Job
+                Add ${pascalCaseBaseName}
               </button>
             </div>
           </form>
@@ -788,28 +805,28 @@ const AddJobPage = ({ addJobSubmit }) => {
   );
 };
 
-export default AddJobPage;`,
+export default Add${pascalCaseBaseName}Page;`,
 
-  "EditJobPage.jsx": `import { useParams, useLoaderData, useNavigate } from 'react-router-dom';
+  [`Edit${pascalCaseBaseName}Page.jsx`]: `import { useParams, useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useField from '../hooks/useField';
 
-const EditJobPage = ({ updateJobSubmit }) => {
-  const job = useLoaderData();
+const Edit${pascalCaseBaseName}Page = ({ update${pascalCaseBaseName}Submit }) => {
+  const ${camelCaseBaseName} = useLoaderData();
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const title = useField('text', 'title', job.title);
-  const description = useField('textarea', 'description', job.description);
-  const salary = useField('number', 'salary', job.salary);
-  const location = useField('text', 'location', job.location);
-  const companyName = useField('text', 'company', job.company.name);
-  const contactEmail = useField('email', 'contact_email', job.company.contactEmail);
-  const contactPhone = useField('tel', 'contact_phone', job.company.contactPhone);
-  const postedDate = useField('date', 'postedDate', new Date(job.postedDate).toISOString().substring(0, 10));
+  const title = useField('text', 'title', ${camelCaseBaseName}.title);
+  const description = useField('textarea', 'description', ${camelCaseBaseName}.description);
+  const salary = useField('number', 'salary', ${camelCaseBaseName}.salary);
+  const location = useField('text', 'location', ${camelCaseBaseName}.location);
+  const companyName = useField('text', 'company', ${camelCaseBaseName}.company.name);
+  const contactEmail = useField('email', 'contact_email', ${camelCaseBaseName}.company.contactEmail);
+  const contactPhone = useField('tel', 'contact_phone', ${camelCaseBaseName}.company.contactPhone);
+  const postedDate = useField('date', 'postedDate', new Date(${camelCaseBaseName}.postedDate).toISOString().substring(0, 10));
 
-  const type = useField("select", "type", job.type);
-  const status  = useField('select', 'status', job.status);
+  const type = useField("select", "type", ${camelCaseBaseName}.type);
+  const status  = useField('select', 'status', ${camelCaseBaseName}.status);
 
   const submitForm = async (e) => {
     e.preventDefault();
@@ -821,7 +838,7 @@ const EditJobPage = ({ updateJobSubmit }) => {
       return;
     }
 
-    const updatedJob = {
+    const updated${pascalCaseBaseName} = {
       id,
       title: title.value,
       type: type.value, 
@@ -838,12 +855,12 @@ const EditJobPage = ({ updateJobSubmit }) => {
     };
 
     try {
-      await updateJobSubmit(updatedJob);
-      toast.success('Job Updated Successfully');
-      navigate("/jobs/${id}!!!");
+      await update${pascalCaseBaseName}Submit(updated${pascalCaseBaseName});
+      toast.success('${pascalCaseBaseName} Updated Successfully');
+      navigate(\`/${camelCaseBaseName}s/\${id}\`);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to update the job. Please try again.');
+      toast.error('Failed to update the ${camelCaseBaseName}. Please try again.');
     }
   };
 
@@ -852,11 +869,11 @@ const EditJobPage = ({ updateJobSubmit }) => {
       <div className="container m-auto max-w-2xl py-24">
         <div className="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
           <form onSubmit={submitForm}>
-            <h2 className="text-3xl text-center font-semibold mb-6">Update Job</h2>
+            <h2 className="text-3xl text-center font-semibold mb-6">Update ${pascalCaseBaseName}</h2>
 
             <div className="mb-4">
               <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
-                Job Type
+                ${pascalCaseBaseName} Type
               </label>
               <select
                 {...type}
@@ -873,7 +890,7 @@ const EditJobPage = ({ updateJobSubmit }) => {
 
             <div className="mb-4">
               <label htmlFor={title.id} className="block text-gray-700 font-bold mb-2">
-                Job Listing Name
+                ${pascalCaseBaseName} Listing Name
               </label>
               <input
                 {...title}
@@ -891,7 +908,7 @@ const EditJobPage = ({ updateJobSubmit }) => {
                 {...description}
                 className="border rounded w-full py-2 px-3"
                 rows="4"
-                placeholder="Add any job duties, expectations, requirements, etc."
+                placeholder="Add any ${camelCaseBaseName} duties, expectations, requirements, etc."
               ></textarea>
             </div>
 
@@ -985,7 +1002,7 @@ const EditJobPage = ({ updateJobSubmit }) => {
                 className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline"
                 type="submit"
               >
-                Update Job
+                Update ${pascalCaseBaseName}
               </button>
             </div>
           </form>
@@ -995,47 +1012,47 @@ const EditJobPage = ({ updateJobSubmit }) => {
   );
 };
 
-export default EditJobPage;`,
+export default Edit${pascalCaseBaseName}Page;`,
   "HomePage.jsx": `import Hero from '../components/Hero';
 import HomeCards from '../components/HomeCards';
-import JobListings from '../components/JobListings';
-import ViewAllJobs from '../components/ViewAllJobs';
+import ${pascalCaseBaseName}Listings from '../components/${pascalCaseBaseName}Listings';
+import ViewAll${pascalCaseBaseName}s from '../components/ViewAll${pascalCaseBaseName}s';
 
 const HomePage = () => {
   return (
     <>
       <Hero />
       <HomeCards />
-      <JobListings isHome={true} />
-      <ViewAllJobs />
+      <${pascalCaseBaseName}Listings isHome={true} />
+      <ViewAll${pascalCaseBaseName}s />
     </>
   );
 };
 export default HomePage;`,
-  "JobPage.jsx": `import { useParams, useLoaderData, useNavigate } from "react-router-dom";
+  [`${pascalCaseBaseName}Page.jsx`]: `import { useParams, useLoaderData, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaMapMarker } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 
-const JobPage = ({ deleteJob }) => {
+const ${pascalCaseBaseName}Page = ({ delete${pascalCaseBaseName} }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const job = useLoaderData();
+  const ${camelCaseBaseName} = useLoaderData();
   const { isAuthenticated  } = useAuth();
 
-  const onDeleteClick = (jobId) => {
+  const onDeleteClick = (${camelCaseBaseName}Id) => {
     const confirm = window.confirm(
       "Are you sure you want to delete this listing?"
     );
 
     if (!confirm) return;
 
-    deleteJob(jobId);
+    delete${pascalCaseBaseName}(${camelCaseBaseName}Id);
 
-    toast.success("Job deleted successfully");
+    toast.success("${pascalCaseBaseName} deleted successfully");
 
-    navigate("/jobs");
+    navigate("/${camelCaseBaseName}s");
   };
 
   return (
@@ -1043,10 +1060,10 @@ const JobPage = ({ deleteJob }) => {
       <section>
         <div className="container m-auto py-6 px-6">
           <Link
-            to="/jobs"
+            to="/${camelCaseBaseName}s"
             className="text-indigo-500 hover:text-indigo-600 flex items-center"
           >
-            <FaArrowLeft className="mr-2" /> Back to Job Listings
+            <FaArrowLeft className="mr-2" /> Back to ${pascalCaseBaseName} Listings
           </Link>
         </div>
       </section>
@@ -1056,26 +1073,26 @@ const JobPage = ({ deleteJob }) => {
           <div className="grid grid-cols-1 md:grid-cols-70/30 w-full gap-6">
             <main>
               <div className="bg-white p-6 rounded-lg shadow-md text-center md:text-left">
-                <div className="text-gray-500 mb-4">{job.type}</div>
-                <h1 className="text-3xl font-bold mb-4">{job.title}</h1>
+                <div className="text-gray-500 mb-4">{${camelCaseBaseName}.type}</div>
+                <h1 className="text-3xl font-bold mb-4">{${camelCaseBaseName}.title}</h1>
                 <div className="text-gray-500 mb-4 flex align-middle justify-center md:justify-start">
                   <FaMapMarker className="text-orange-700 mr-1" />
-                  <p className="text-orange-700">{job.location}</p>
+                  <p className="text-orange-700">{${camelCaseBaseName}.location}</p>
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-md mt-6">
                 <h3 className="text-indigo-800 text-lg font-bold mb-6">
-                  Job Description
+                  ${pascalCaseBaseName} Description
                 </h3>
 
-                <p className="mb-4">{job.description}</p>
+                <p className="mb-4">{${camelCaseBaseName}.description}</p>
 
                 <h3 className="text-indigo-800 text-lg font-bold mb-2">
                   Salary
                 </h3>
 
-                <p className="mb-4">{job.salary} / Year</p>
+                <p className="mb-4">{${camelCaseBaseName}.salary} / Year</p>
               </div>
             </main>
 
@@ -1084,39 +1101,39 @@ const JobPage = ({ deleteJob }) => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold mb-6">Company Info</h3>
 
-                <h2 className="text-2xl">{job.company.name}</h2>
+                <h2 className="text-2xl">{${camelCaseBaseName}.company.name}</h2>
 
-                <p className="my-2">{job.company.description}</p>
+                <p className="my-2">{${camelCaseBaseName}.company.description}</p>
 
                 <hr className="my-4" />
 
                 <h3 className="text-xl">Contact Email:</h3>
 
                 <p className="my-2 bg-indigo-100 p-2 font-bold">
-                  {job.company.contactEmail}
+                  {${camelCaseBaseName}.company.contactEmail}
                 </p>
 
                 <h3 className="text-xl">Contact Phone:</h3>
 
                 <p className="my-2 bg-indigo-100 p-2 font-bold">
                   {" "}
-                  {job.company.contactPhone}
+                  {${camelCaseBaseName}.company.contactPhone}
                 </p>
               </div>
               {isAuthenticated && (
                 <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-                  <h3 className="text-xl font-bold mb-6">Manage Job</h3>
+                  <h3 className="text-xl font-bold mb-6">Manage ${pascalCaseBaseName}</h3>
                   <Link
-                    to={"/edit-job/${job.id}!!!"}
+                    to={\`/edit-${camelCaseBaseName}/\${${camelCaseBaseName}.id}\`}
                     className="bg-indigo-500 hover:bg-indigo-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
                   >
-                    Edit Job
+                    Edit ${pascalCaseBaseName}
                   </Link>
                   <button
-                    onClick={() => onDeleteClick(job.id)}
+                    onClick={() => onDeleteClick(${camelCaseBaseName}.id)}
                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
                   >
-                    Delete Job
+                    Delete ${pascalCaseBaseName}
                   </button>
                 </div>
               )}
@@ -1128,24 +1145,24 @@ const JobPage = ({ deleteJob }) => {
   );
 };
 
-const jobLoader = async ({ params }) => {
-  const res = await fetch("/api/jobs/${params.id}!!!");
+const ${camelCaseBaseName}Loader = async ({ params }) => {
+  const res = await fetch(\`/api/${camelCaseBaseName}s/\${params.id}\`);
   const data = await res.json();
   return data;
 };
 
-export { JobPage as default, jobLoader };`,
+export { ${pascalCaseBaseName}Page as default, ${camelCaseBaseName}Loader };`,
 
-  "JobsPage.jsx": `import JobListings from '../components/JobListings';
+  [`${pascalCaseBaseName}sPage.jsx`]: `import ${pascalCaseBaseName}Listings from '../components/${pascalCaseBaseName}Listings';
 
-const JobsPage = () => {
+const ${pascalCaseBaseName}sPage = () => {
   return (
     <section className='bg-blue-50 px-4 py-6'>
-      <JobListings />
+      <${pascalCaseBaseName}Listings />
     </section>
   );
 };
-export default JobsPage;`,
+export default ${pascalCaseBaseName}sPage;`,
   "LoginPage.jsx": `import useField from "../hooks/useField"; // Make sure to import the hook
 import useLogin from "../hooks/useLogin";
 
@@ -1400,11 +1417,11 @@ export default SignupComponent;`,
 } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
-import JobsPage from "./pages/JobsPage";
+import ${pascalCaseBaseName}sPage from "./pages/${pascalCaseBaseName}sPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import JobPage, { jobLoader } from "./pages/JobPage";
-import AddJobPage from "./pages/AddJobPage";
-import EditJobPage from "./pages/EditJobPage";
+import ${pascalCaseBaseName}Page, { ${camelCaseBaseName}Loader } from "./pages/${pascalCaseBaseName}Page";
+import Add${pascalCaseBaseName}Page from "./pages/Add${pascalCaseBaseName}Page";
+import Edit${pascalCaseBaseName}Page from "./pages/Edit${pascalCaseBaseName}Page";
 import SignupComponent from "./pages/SignupComponent";
 import LoginPage from "./pages/LoginPage";
 import { useState } from "react";
@@ -1412,12 +1429,12 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
 const AppContent = () => {
-  // Add New Job
-  const addJob = async (newJob) => {
+  // Add New ${pascalCaseBaseName}
+  const add${pascalCaseBaseName} = async (new${pascalCaseBaseName}) => {
     const user = JSON.parse(sessionStorage.getItem("user")); // Get the user from sessionStorage
     const token = user ? user.token : null; // Extract the token
 
-    console.log('job:', newJob)
+    console.log('${camelCaseBaseName}:', new${pascalCaseBaseName})
     console.log("user", user)
     console.log(token)
     
@@ -1427,22 +1444,22 @@ const AppContent = () => {
     }
 
     try {
-      const res = await fetch("/api/jobs", {
+      const res = await fetch("/api/${camelCaseBaseName}s", {
         method: "POST",
         headers: {
-          Authorization: "Bearer ${token}!!!",
+          Authorization: \`Bearer \${token}\`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newJob),
+        body: JSON.stringify(new${pascalCaseBaseName}),
       });
 
       if (res.ok) {
-        const createdJob = await res.json();
-        return createdJob;
-        toast.success('Job added successfully!');
+        const created${pascalCaseBaseName} = await res.json();
+        return created${pascalCaseBaseName};
+        toast.success('${pascalCaseBaseName} added successfully!');
       } else {
         const errorData = await res.json();
-        console.error("Failed to add job:", errorData);
+        console.error("Failed to add ${camelCaseBaseName}:", errorData);
         return false;
       }
     } catch (error) {
@@ -1451,8 +1468,8 @@ const AppContent = () => {
     }
   };
 
-  // Delete Job
-  const deleteJob = async (id) => {
+  // Delete ${pascalCaseBaseName}
+  const delete${pascalCaseBaseName} = async (id) => {
     const user = JSON.parse(sessionStorage.getItem("user")); // Get the user from sessionStorage
     const token = user ? user.token : null; // Extract the token
 
@@ -1461,26 +1478,26 @@ const AppContent = () => {
       return false;
     }
 
-    const res = await fetch("/api/jobs/${id}!!!", {
+    const res = await fetch(\`/api/${camelCaseBaseName}s/\${id}\`, {
       method: "DELETE",
       headers: {
-        Authorization: "Bearer ${token}!!!", // Add the Authorization header with the token
+        Authorization: \`Bearer \${token}\`, // Add the Authorization header with the token
         "Content-Type": "application/json",
       },
     });
 
     if (res.ok) {
-      console.log("Job deleted successfully");
+      console.log("${pascalCaseBaseName} deleted successfully");
       return true;
     } else {
       const errorData = await res.json();
-      console.error("Failed to delete job:", errorData);
+      console.error("Failed to delete ${camelCaseBaseName}:", errorData);
       return false;
     }
   };
 
-  // Update Job
-  const updateJob = async (job) => {
+  // Update ${pascalCaseBaseName}
+  const update${pascalCaseBaseName} = async (${camelCaseBaseName}) => {
     const user = JSON.parse(sessionStorage.getItem("user")); // Get the user from sessionStorage
     const token = user ? user.token : null; // Extract the token
 
@@ -1489,24 +1506,24 @@ const AppContent = () => {
       return false;
     }
 
-    console.log('job:', job)
+    console.log('${camelCaseBaseName}:', ${camelCaseBaseName})
 
-    const res = await fetch("/api/jobs/${job.id}!!!", {
+    const res = await fetch(\`/api/${camelCaseBaseName}s/\${${camelCaseBaseName}.id}\`, {
       method: "PUT",
       headers: {
-        Authorization: "Bearer ${token}!!!", // Add the Authorization header
+        Authorization: \`Bearer \${token}\`, // Add the Authorization header
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(job),
+      body: JSON.stringify(${camelCaseBaseName}),
     });
 
     if (res.ok) {
-      const updatedJob = await res.json();
-      console.log("Job updated successfully:", updatedJob);
-      return updatedJob;
+      const updated${pascalCaseBaseName} = await res.json();
+      console.log("${pascalCaseBaseName} updated successfully:", updated${pascalCaseBaseName});
+      return updated${pascalCaseBaseName};
     } else {
       const errorData = await res.json();
-      console.error("Failed to update job:", errorData);
+      console.error("Failed to update ${camelCaseBaseName}:", errorData);
       return false;
     }
   };
@@ -1516,25 +1533,25 @@ const AppContent = () => {
     createRoutesFromElements(
       <Route path="/" element={<MainLayout/>}>
         <Route index element={<HomePage />} />
-        <Route path="/jobs" element={<JobsPage />} />
+        <Route path="/${camelCaseBaseName}s" element={<${pascalCaseBaseName}sPage />} />
         <Route
-          path="/jobs/:id"
-          element={<JobPage deleteJob={deleteJob}/>}
-          loader={jobLoader}
+          path="/${camelCaseBaseName}s/:id"
+          element={<${pascalCaseBaseName}Page delete${pascalCaseBaseName}={delete${pascalCaseBaseName}}/>}
+          loader={${camelCaseBaseName}Loader}
         />
         
-        <Route path="/add-job" element={
+        <Route path="/add-${camelCaseBaseName}" element={
           <ProtectedRoute>
-            <AddJobPage addJobSubmit={addJob} />
+            <Add${pascalCaseBaseName}Page add${pascalCaseBaseName}Submit={add${pascalCaseBaseName}} />
           </ProtectedRoute>
         } />
 
-        <Route path="/edit-job/:id" element={
+        <Route path="/edit-${camelCaseBaseName}/:id" element={
           <ProtectedRoute>
-            <EditJobPage updateJobSubmit={updateJob} />
+            <Edit${pascalCaseBaseName}Page update${pascalCaseBaseName}Submit={update${pascalCaseBaseName}} />
           </ProtectedRoute>
         }
-          loader={jobLoader}
+          loader={${camelCaseBaseName}Loader}
         />
 
         <Route path="/signup" element={<SignupComponent />} />

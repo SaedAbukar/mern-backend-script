@@ -33,7 +33,7 @@ const structure = {
   middleware: ["customMiddleware.js", "requireAuth.js"],
   models: [`${camelCaseBaseName}Model.js`, "userModel.js"],
   routers: [`${camelCaseBaseName}Router.js`, "userRouter.js"],
-  rootFiles: [".env", "README.md", "app.js", "package.json"], // Added package.json
+  rootFiles: [".env", "README.md", "app.js", "server.js", "package.json"], // Added package.json
 };
 
 // Function to create directories and files
@@ -49,6 +49,14 @@ const createStructure = (basePath, structure) => {
             "PORT=4000\nMONGO_URI=mongodb://localhost:27017/scripttest\nSECRET=64bytesofrandomness\n";
         } else if (file === "README.md") {
           content = `# ${baseName} API\n\n## Overview\nThis API handles ${baseName} tasks.\n`;
+        } else if (file === "server.js") {
+          content = `const app = require ('./app');
+
+const port = process.env.PORT || 4000;
+// Start the server
+app.listen(port, () => {
+  console.log(\`Server is running on http://localhost:\${port}\`);
+});`;
         } else if (file === "app.js") {
           content = `
 require("dotenv").config();
@@ -76,11 +84,6 @@ app.use("/api/users", userRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
-
-const port = process.env.PORT || 4000;
-app.listen(port, () =>
-  console.log(\`Server is running on http://localhost:\${port}\`)
-);
           `;
         } else if (file === "package.json") {
           // Dynamically create the package.json file with no specific versions to always get the latest
@@ -147,10 +150,102 @@ module.exports = connectDB;
           content = `
 const ${pascalCaseBaseName} = require('../models/${camelCaseBaseName}Model');
 
-// Controller functions for ${pascalCaseBaseName} go here
-// Implement functions like get, add, delete, update
+const getAll${pascalCaseBaseName}s = async (req, res) => {
+  try {
+    const ${pascalCaseBaseName.toLowerCase()}s = await ${pascalCaseBaseName}.find();
+    res.status(200).json(${pascalCaseBaseName.toLowerCase()}s);
+  } catch (error) {
+    res.status(500).json({ message: "Server error: Unable to fetch ${pascalCaseBaseName.toLowerCase()}s" });
+  }
+};
+
+const get${pascalCaseBaseName}ById = async (req, res) => {
+  try {
+    const ${pascalCaseBaseName.toLowerCase()} = await ${pascalCaseBaseName}.findById(req.params.id);
+    if (!${pascalCaseBaseName.toLowerCase()}) {
+      return res.status(404).json({ message: "${pascalCaseBaseName} not found" });
+    }
+    res.status(200).json(${pascalCaseBaseName.toLowerCase()});
+  } catch (error) {
+    res.status(500).json({ message: "Server error: Unable to fetch ${pascalCaseBaseName.toLowerCase()}" });
+  }
+};
+
+const add${pascalCaseBaseName} = async (req, res) => {
+  const { title, type, location, description, salary, company, postedDate, status  } = req.body;
+
+  if (!title || !type || !description|| !location  || !salary || !company || !postedDate || !status ) {
+    return res.status(400).json({ message: "Please fill all fields" });
+  }
+
+  try {
+    const new${pascalCaseBaseName} = new ${pascalCaseBaseName}({
+      title,
+      type,
+      description,
+      company,
+      location,
+      salary,
+      postedDate,      
+      status,
+    });
+
+    const created${pascalCaseBaseName} = await new${pascalCaseBaseName}.save();
+    res.status(201).json(created${pascalCaseBaseName});
+  } catch (error) {
+    res.status(500).json({ message: "Server error: Unable to create ${pascalCaseBaseName.toLowerCase()}" });
+  }
+};
+
+const update${pascalCaseBaseName} = async (req, res) => {
+  const { title, type, location, description, salary, company, postedDate, status } = req.body;
+
+  try {
+    const ${pascalCaseBaseName.toLowerCase()} = await ${pascalCaseBaseName}.findById(req.params.id);
+
+    if (!${pascalCaseBaseName.toLowerCase()}) {
+      return res.status(404).json({ message: "${pascalCaseBaseName} not found" });
+    }
+
+    // Update fields
+    ${pascalCaseBaseName.toLowerCase()}.title = title || ${pascalCaseBaseName.toLowerCase()}.title;
+    ${pascalCaseBaseName.toLowerCase()}.type = type || ${pascalCaseBaseName.toLowerCase()}.type;
+    ${pascalCaseBaseName.toLowerCase()}.description = description || ${pascalCaseBaseName.toLowerCase()}.description;
+    ${pascalCaseBaseName.toLowerCase()}.location = location || ${pascalCaseBaseName.toLowerCase()}.location;
+    ${pascalCaseBaseName.toLowerCase()}.salary = salary || ${pascalCaseBaseName.toLowerCase()}.salary;
+    ${pascalCaseBaseName.toLowerCase()}.company = company || ${pascalCaseBaseName.toLowerCase()}.company;
+    ${pascalCaseBaseName.toLowerCase()}.postedDate = postedDate || ${pascalCaseBaseName.toLowerCase()}.postedDate;
+    ${pascalCaseBaseName.toLowerCase()}.status = status || ${pascalCaseBaseName.toLowerCase()}.status;
+
+    const updated${pascalCaseBaseName} = await ${pascalCaseBaseName.toLowerCase()}.save();
+    res.status(200).json(updated${pascalCaseBaseName});
+  } catch (error) {
+    res.status(500).json({ message: "Server error: Unable to update ${pascalCaseBaseName.toLowerCase()}" });
+  }
+};
+
+const delete${pascalCaseBaseName} = async (req, res) => {
+  try {
+    const ${pascalCaseBaseName.toLowerCase()} = await ${pascalCaseBaseName}.findById(req.params.id); // Correct the model usage here
+
+    if (!${pascalCaseBaseName.toLowerCase()}) {
+      return res.status(404).json({ message: "${pascalCaseBaseName} not found" });
+    }
+
+    await ${pascalCaseBaseName}.findByIdAndDelete(req.params.id); // Delete the ${pascalCaseBaseName.toLowerCase()}
+    res.status(200).json({ message: "${pascalCaseBaseName} removed successfully" });
+  } catch (error) {
+    console.error("Error deleting ${pascalCaseBaseName.toLowerCase()}:", error); // Log the error for debugging
+    res.status(500).json({ message: "Server error: Unable to delete ${pascalCaseBaseName.toLowerCase()}" });
+  }
+};
+
 module.exports = {
-  // Add functions here
+  getAll${pascalCaseBaseName}s,
+  get${pascalCaseBaseName}ById,
+  add${pascalCaseBaseName},
+  update${pascalCaseBaseName},
+  delete${pascalCaseBaseName},
 };
           `;
         } else if (file === "userController.js") {
@@ -300,20 +395,34 @@ module.exports = requireAuth;
           ;`;
         } else if (file === `${camelCaseBaseName}Router.js`) {
           content = `const express = require("express");
-const router = express.Router();
-// Import controller functions for ${pascalCaseBaseName}
+const requireAuth = require("../middleware/requireAuth");
+const {
+  getAll${pascalCaseBaseName}s,
+  get${pascalCaseBaseName}ById,
+  add${pascalCaseBaseName},
+  update${pascalCaseBaseName},
+  delete${pascalCaseBaseName},
+} = require("../controllers/${pascalCaseBaseName.toLowerCase()}Controller");
 
-// Define routes for ${camelCaseBaseName}
+const router = express.Router();
+
+// Define routes for react${pascalCaseBaseName}
+router.get("/", getAll${pascalCaseBaseName}s);
+
+router.get("/:id", get${pascalCaseBaseName}ById);
+
+// require auth for editing purpose
+router.use(requireAuth);
+
+router.post("/", add${pascalCaseBaseName});
+
+router.put("/:id", update${pascalCaseBaseName});
+
+router.delete("/:id", delete${pascalCaseBaseName});
 
 // Export the router
-module.exports = router;`;
-        } else if (file === "tourRouter.js") {
-          content = `const express = require("express");
-const router = express.Router();
-// Define routes for tour related tasks
-
 module.exports = router;
-          ;`;
+`;
         } else if (file === "userModel.js") {
           content = `
 const mongoose = require("mongoose");
